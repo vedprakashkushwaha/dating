@@ -2,6 +2,8 @@ const express = require('express');
 const multer = require("multer");
 const cors = require("cors");
 const mkdirp = require("mkdirp");
+const jwt = require("jsonwebtoken");
+const SECRETKEY = "dwfdefvdvdfvsdfnhgjhgffgnhgf";
 //const dbCon = require("./dbConnection");
 var url1 = require("url");
 const bodyParser = require("body-parser");
@@ -119,14 +121,61 @@ async function loginCkeck(uname, pass, res) {
       if (err) throw err;
       var flag = false;
       for (let i = 0; i < resD.length; i++) {
+        var user = {
+          uname: resD[i]['email'],
+          fname: resD[i]['fname']
+        }
         if (resD[i]['email'] == uname && resD[i]['pass'] == pass) {
           flag = true;
         }
       }
 
-      res.end(JSON.stringify({
-        "results": flag
-      }));
+
+      if (flag) {
+
+
+        jwt.sign({
+          user
+        }, SECRETKEY, (err, token) => {
+          if (err) {
+            throw err;
+          } else {
+            console.log(JSON.stringify({
+              "results": [{
+                "token": token
+              }]
+            }));
+            res.end(JSON.stringify({
+              "results": [{
+                "token": token
+              }]
+            }));
+          }
+        });
+
+        // res.end(JSON.stringify({
+        //   "results": flag
+        // }));
+
+
+
+      } else {
+        console.log(JSON.stringify({
+          "results": [{
+            "token": false
+          }]
+        }));
+        res.end(JSON.stringify({
+          "results": [{
+            "token": false
+          }]
+        }));
+      }
+
+
+
+
+
     });
   });
 
@@ -307,6 +356,59 @@ app.get("/api.block", async function (req, res) {
   await block(qData.uname, qData.target);
 
 });
+
+app.get("/test", function (req, res) {
+  res.end(JSON.stringify({
+    "data": [{
+      "name": "ved",
+      "age": 12
+    }, {
+      "name": "ram",
+      "age": 12
+    }]
+  }));
+});
+
+
+
+app.get("/jwt", async function (req, res) {
+  test(res)
+});
+async function test(res) {
+
+  var v = 1
+  var uname = "ved@gmail.com"
+  const user = {
+    uname,
+    age: 22
+  }
+
+  if (v == 1) {
+    jwt.sign({
+      user
+    }, SECRETKEY, (err, token) => {
+      if (err) {
+        throw err;
+      } else {
+        res.end(JSON.stringify({
+          "results": [{
+            "token": token
+          }]
+        }));
+      }
+    });
+  } else {
+    res.end(JSON.stringify({
+      "result": [{
+        "token": false
+      }]
+    }));
+  }
+
+
+
+}
+
 
 
 
