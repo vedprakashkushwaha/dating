@@ -11,6 +11,28 @@ export default class DashBoard extends Component {
        
     }
 
+    block = async (email) => {
+        const cookies = new Cookies();
+        var url = "http://localhost:8000/api.block?uname="+cookies.get('uname') + "&target="+email;
+        const respose = await fetch(url);
+    };
+
+    like = async (email) => {
+        const cookies = new Cookies();
+        alert("like")
+       // var url = "http://localhost:8000/api.like?uname="+cookies.get('uname') + "&target="+email;
+        //const respose = await fetch(url);
+    };
+
+    super = async (email) => {
+        const cookies = new Cookies();
+        alert("super");
+        //var url = "http://localhost:8000/api.super?uname="+cookies.get('uname') + "&target="+email;
+        ///const respose = await fetch(url);
+    };
+
+
+
     loadImage = async () => {
         
         const cookies = new Cookies();
@@ -23,8 +45,6 @@ export default class DashBoard extends Component {
             imageData: data["results"]
         
           });
-        
-        
     }
 
     createCards = async () => {
@@ -41,30 +61,17 @@ export default class DashBoard extends Component {
                     
                 </div>
                 <div className = "btn-group">
-                    <button className = "btn"> Block </button><button className="btn">Like</button > < button className = "btn" > Super Like </button>
+                    <button className = "btn"  onClick = { async () => { await this.block(this.state.imageData[i]['email']);}}> Block </button>
+                    <button className="btn" onClick = { async () => { await this.like(this.state.imageData[i]['email']);}}>Like</button > 
+                    < button className = "btn"  onClick = { async () => { await this.super(this.state.imageData[i]['email']);}}> Super Like </button>
                 </div>
 
             </div>
-            
-            
-            
             )
-
-
-
         }
-       
        await this.setState({
             cards:cardHtml
-       });
-
-
-                                
-
-                                
-                                
-                             
-        
+       });      
     }
     //http://localhost:8000/getImage?o=ved@gmail.com/&i=exception%20hierarchy.png
     async componentWillMount() {
@@ -85,8 +92,6 @@ export default class DashBoard extends Component {
         const cookies = new Cookies();
         cookies.remove("uname");
         window.location.href = "http://localhost:3000/";
-
-
     };
     render() {
         return ( 

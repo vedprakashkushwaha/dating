@@ -75,7 +75,7 @@ async function register(fname, lname, email, sex, age, pass, file) {
     file: file,
     like: 0,
     super: [],
-    blocked: []
+    blocked: [email]
   };
 
   MongoClient.connect(url, {
@@ -178,7 +178,7 @@ async function loadImgSupport(res, data, selfEmail) {
       for (let i = 0; i < resD.length; i++) {
         flag = 1;
         for (let j = 0; j < data[0]['blocked'].length; j++) {
-          if (resD[i]['email'] == data[0]['blocked'][j] || selfEmail == resD[i]['image']) {
+          if (resD[i]['email'] == data[0]['blocked'][j]) {
             flag = 0;
           }
         }
@@ -191,7 +191,7 @@ async function loadImgSupport(res, data, selfEmail) {
         }
 
 
-        if (count == 3) {
+        if (count == 4) {
           break;
         }
       }
@@ -214,11 +214,6 @@ async function loadImg(res, email) {
   }, (err, database) => {
 
     const myDb = database.db('dating');
-
-    const myDb1 = database.db('dating');
-
-
-
     myDb.collection("clients")
       .find({
         email: email
@@ -230,20 +225,15 @@ async function loadImg(res, email) {
       })
       .toArray(async function (err, resD) {
         if (err) throw err;
-
         await loadImgSupport(res, resD, email)
       });
   });
-
 }
 
 app.get("/api.loadImgDetail", async function (req, res) {
 
-
   var q = url1.parse(req.url, true);
   var qData = q.query
-
-
   await loadImg(res, qData.uname);
 
 });
@@ -258,6 +248,67 @@ app.get("/getImage", function (req, res) {
   let url = "/images/" + org + "/" + image;
   res.sendFile(__dirname + url);
 });
+
+
+
+
+async function addBlock(bList, email, target) {
+
+  flag = 1;
+  for (let i = 0; i < bList.length; i++) {
+    if (bList[i] == target) {
+      flag = 0;
+    }
+  }
+  if (flag == 1) {
+    MongoClient.connect(url, {
+      useUnifiedTopology: true
+    }, (err, database) => {
+      const myDb = database.db('dating');
+      bList.push(target);
+      myDb.collection("clients").updateOne({
+        email: email
+      }, {
+        $set: {
+          blocked: bList
+        }
+      });
+    });
+
+  }
+
+}
+
+async function block(uname, target) {
+  MongoClient.connect(url, {
+    useUnifiedTopology: true
+  }, (err, database) => {
+
+    const myDb = database.db('dating');
+    myDb.collection("clients")
+      .find({
+        email: uname
+      }, {
+        projection: {
+          _id: 0,
+          blocked: 1
+        }
+      })
+      .toArray(async function (err, resD) {
+        if (err) throw err;
+        await addBlock(resD[0]['blocked'], uname, target);
+      });
+  });
+}
+
+app.get("/api.block", async function (req, res) {
+  let q = url1.parse(req.url, true);
+  let qData = q.query
+  await block(qData.uname, qData.target);
+
+});
+
+
 
 app.listen(8000, function () {
   console.log("server is running on 127.0.0.1:8000");
