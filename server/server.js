@@ -224,9 +224,16 @@ async function loadImgSupport(res, data, selfEmail) {
           }
         }
         if (flag == 1) {
+
           data1.push({
             email: resD[i]['email'],
-            image: resD[i]['file']
+            image: resD[i]['file'],
+            name: resD[i]['fname'] + " " + resD[i]['lname'],
+            sex: resD[i]['sex'],
+            age: resD[i]['age'],
+            likes: resD[i]['like'].length,
+            super: resD[i]['super'].length
+
           });
           count = count + 1;
         }
@@ -236,7 +243,9 @@ async function loadImgSupport(res, data, selfEmail) {
           break;
         }
       }
-
+      console.log(JSON.stringify({
+        "results": data1
+      }))
       res.end(JSON.stringify({
         "results": data1
       }))
@@ -342,7 +351,7 @@ async function block(uname, target) {
 app.get("/api.block", async function (req, res) {
   let q = url1.parse(req.url, true);
   let qData = q.query
-  
+
   await block(qData.uname, qData.target);
 
 });
@@ -357,7 +366,7 @@ async function addLike(lList, email, target) {
   flag = 1;
   try {
     for (let i = 0; i < lList.length; i++) {
-      if (lList[i] == target) {
+      if (lList[i] == email) {
         flag = 0;
       }
     }
@@ -424,7 +433,7 @@ app.get("/api.like", async function (req, res) {
 
 
 //super like images
-async function addSuper(lList, email, target,image) {
+async function addSuper(lList, email, target, image) {
   flag = 1;
   try {
     for (let i = 0; i < lList.length; i++) {
@@ -441,7 +450,10 @@ async function addSuper(lList, email, target,image) {
       useUnifiedTopology: true
     }, (err, database) => {
       const myDb = database.db('dating');
-      lList.push({"who":email,"image":image});
+      lList.push({
+        "who": email,
+        "image": image
+      });
       myDb.collection("clients").updateOne({
         email: target
       }, {
@@ -470,7 +482,7 @@ async function superL(uname, target, image) {
       })
       .toArray(async function (err, resD) {
         if (err) throw err;
-        await addSuper(resD[0]['like'], uname, target,image);
+        await addSuper(resD[0]['like'], uname, target, image);
       });
   });
 }
@@ -540,44 +552,36 @@ async function test(res) {
 }
 
 
-/*
-function varify(req,res,next)
-{
-  var q=url1.parse(req.url,true);
-  var qData=q.query
-  next();
-}
-app.get("/hello",varify,function(req,res)
-{
-  var user = {name:"ved",age:25,user:"ved@gmail.com"}
-  jwt.sign(user,SECRETKEY,(err,token)=>{
-    res.json(token);
-  });
-});
+async function getNotification(uname, res) {
+  MongoClient.connect(url, {
+    useUnifiedTopology: true
+  }, (err, database) => {
 
-app.get("/testdata",varify,function(req,res)
-{
-  var user = {name:"ved",age:25,user:"ved@gmail.com"}
-  var q=url1.parse(req.url,true);
-  var qData=q.query
-  jwt.verify(qData['token'],SECRETKEY,(err,rData)=>{
-    if(err)
-    {
-      res.json("error found");
-    }
-    else{
-      res.json(rData);
-    }
+    const myDb = database.db('dating');
+    myDb.collection("clients")
+      .find({
+        email: uname
+      }, {
+        projection: {
+          _id: 0,
+          like:1,
+          super:1
+        }
+      })
+      .toArray(async function (err, resD) {
+        if (err) throw err;
+        console.log(resD[0]);
+        res.end(JSON.stringify({"results":resD[0]}));
+        //await loadImgSupport(res, resD, email)
+      });
   });
-});
-*/
-app.post("/test", function (req, res) {
-  console.log("hello");
-  console.log(req.headers[0]);
-  res.json({
-    "data:": "data",
-    "age": 23
-  });
+}
+
+app.get("/api.notification", async function (req, res) {
+
+  var q = url1.parse(req.url, true);
+  var qData = q.query;
+  getNotification(qData.uname, res);
 
 });
 

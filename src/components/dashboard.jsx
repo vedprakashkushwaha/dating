@@ -4,6 +4,7 @@ import React, {
 import Cookies from "universal-cookie";
 import Axios from 'axios';
 
+
 export default class DashBoard extends Component {
     constructor() {
         super();
@@ -34,12 +35,120 @@ export default class DashBoard extends Component {
        
     };
 
-    popUp = async (email) => {
+    popUp = async (email,url,data) => {
+
         
-        alert("show pop up")
         
+
+
+        var modal = document.getElementById("myModal");
+        var span = document.getElementsByClassName("close")[0];
+        
+        modal.style.display = "block";
+     
+        span.onclick = function() 
+        {
+            modal.style.display = "none";
+        }
+
+        window.onclick = function(event) 
+        {
+            if (event.target == modal) 
+            {
+                modal.style.display = "none";
+            }
+        } 
        
+
+        var ur="http://localhost:8000/getImage?o="+data['email']+"/&i="+data['image'];
+
+        document.getElementById("email").innerHTML= data['email'];
+        
+        document.getElementById("fname").innerHTML= data['name'];
+
+        document.getElementById("like").innerHTML= data['likes'];
+
+        document.getElementById("super").innerHTML= data['super'];
+
+        document.getElementById("age").innerHTML= data['age'];
+        
+        document.getElementById("image").innerHTML= '<img id="img" src="'+ur+'"/>';
+
+        document.getElementById("img").style.height = "200px";
+       
+        
     };
+
+
+
+
+
+
+
+    async getNotification()
+    {
+        const cookies = new Cookies();
+        
+        var url = "http://localhost:8000/api.notification?uname="+cookies.get('uname');
+
+
+        const respose = await fetch(url);
+
+        const data = await respose.json();
+       
+        await this.setState({
+            notification: data["results"]
+        
+          });
+    }
+    notificationPopUp = async () => {
+        //alert(localStorage.getItem('token'));
+
+
+        
+
+
+        await this.getNotification();
+
+
+        var modal = document.getElementById("myModal1");
+        var span = document.getElementsByClassName("close1")[0];
+        modal.style.display = "block";
+        
+
+        document.getElementById("super-likes").style.borderBottom = "3px solid #f05030";
+        document.getElementById("super-likes").style.borderBottomLeftRadius = "20px";
+        document.getElementById("super-likes").style.borderBottomRightRadius = "20px";
+        document.getElementById("super-likes").style.fontSize = "25px";
+        document.getElementById("super-likes").style.color = "#4f231a";
+        document.getElementById("likes").style.borderBottom = "2px solid #f05030";
+        document.getElementById("likes").style.borderBottomLeftRadius = "20px";
+        document.getElementById("likes").style.borderBottomRightRadius = "20px";
+        document.getElementById("likes").style.fontSize = "21px";
+        document.getElementById("super-likes").style.color = "#4f231a";
+
+
+
+        span.onclick = function() 
+        {
+            modal.style.display = "none";
+        }
+
+        window.onclick = function(event) 
+        {
+            if (event.target == modal) 
+            {
+                modal.style.display = "none";
+            }
+        } 
+    };
+
+
+
+
+
+
+
 
 
 
@@ -66,10 +175,13 @@ export default class DashBoard extends Component {
            
             cardHtml.push(
                 <div className ="image-card">
+        
                 <div className = "image-instance">
-                <img src={url}  onClick = { async () => { await this.popUp(this.state.imageData[i]['email']);}} />
+                
+                <img src={url}  id="myBtn"  onClick = { async () => { await this.popUp(this.state.imageData[i]['email'],url,this.state.imageData[i]);}  }/> 
                     
                 </div>
+                
                 <div className = "btn-group">
                     <button className = "btn"  onClick = { async () => { await this.block(this.state.imageData[i]['email']);}}> Block </button>
                     <button className="btn" onClick = { async () => { await this.like(this.state.imageData[i]['email']);}}>Like</button > 
@@ -109,25 +221,98 @@ export default class DashBoard extends Component {
         return ( 
             <div>
                 <br/>
-                <button class = "logout"onClick = { async () => { await this.logout();}} > Logout </button> <br/> <br/>
+               
+                <button class = "logout" onClick = { async () => { await this.logout();}} style={{backgroundColor:"#f05030"}}> Logout </button>
+                <button class = "notification" id="mybtn1"  onClick = { async () => { await this.notificationPopUp();}  }> Notification </button> 
+                <br/> <br/>
+                
             
                 <div className = "main-container" >
                     <center>
                         <div className = "dashboard-container">
 
-
-
-                           {/* <div className = "image-card">
-                                <div className = "image-instance"> 
-
-                                </div> 
-                                <div className = "btn-group">
-                                    <button className = "btn"> Block </button><button className="btn">Like</button > < button className = "btn" > Super Like </button> 
-                                </div> 
-                            </div> */}
-
                             {this.state.cards}
+
+                           
+
+                            <div id="myModal" class="modal">
+                                <div class="modal-content">
+                                    <span class="close">&times;</span>
+
+                                    
+                                    <div id="image"></div>
+                                          
+                                    <table>
+
+                                        <tr> 
+                                            <td>Full Name</td> 
+                                            <td>:</td>
+                                            <td id="fname"></td>
+                                        </tr>
+
+                                        <tr> 
+                                            <td>Age</td> 
+                                            <td>:</td>
+                                            <td id="age"></td>
+                                        </tr>
+
+                                    
+
+                                        <tr> 
+                                            <td>Email</td> 
+                                            <td>:</td>
+                                            <td id="email"></td>
+                                        </tr>
+
+
+                                        <tr> 
+                                            <td>Likes</td> 
+                                            <td>:</td>
+                                            <td id="like"></td>
+                                        </tr>
+
+                                        <tr> 
+                                            <td>Super Likes</td> 
+                                            <td>:</td>
+                                            <td id="super"></td>
+                                        </tr>
+
+
+
+                                        
+
+                                    </table>
+                                </div>
+                            </div>
+
+
+
+
+
+
+                            <div id="myModal1" class="modal1">
+                                <div class="modal-content1">
+                                    <span class="close1">&times;</span>
+                                    <br/><br/>
+                                    <div id="super-likes"><p>Super Likes</p></div>
+                                    <div className="super-likes-body" id="super-likes-body"></div>
+                                    
+                                    <div className="likes" id="likes"><p>Likes</p></div>
+                                    <div className="likes-body" id="likes-body"></div>
+
+                                    
+                                    
+                                </div>
+                            </div>
+
                             
+
+
+
+
+
+
+
                         </div> 
                     </center> 
                 </div>
