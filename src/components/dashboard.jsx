@@ -98,23 +98,47 @@ export default class DashBoard extends Component {
        
         await this.setState({
             notification: data["results"]
+          });   
+    }
+    async notificationHtml()
+    {
+        var like = this.state.notification['like'];
+        var superLike = this.state.notification['super'];
+        var l=[]
+        var sl=[]
+        for(let i=0;i<like.length;i++)
+        {
+            l.push(<tr><td>{like[i] } is like your photo</td></tr>);
+        }
+
+        await this.setState({likeHtml:l});
+
+//       http://localhost:8000/getImage?o=nawajish@gmail.com/&i=CSM17008.jpg
+
+//      {"who":"vinay@gmail.com","image":"CSM17014.jpg"}
         
-          });
+        for(let i=0;i<superLike.length;i++)
+        {
+            
+            var url = "http://localhost:8000/getImage?o="+superLike[i]['who']+"/&i="+superLike[i]['image'];
+            
+            sl.push(<tr>  <td> <img id="noteImg" src={url} /> </td> <td> is liked your photos</td></tr>);
+        }
+        await this.setState({superLike:sl});
+
+
     }
     notificationPopUp = async () => {
-        //alert(localStorage.getItem('token'));
-
-
-        
-
 
         await this.getNotification();
-
+        await this.notificationHtml();
+        document.getElementById("noteImg").style.height = "200px";
+        //{"like":["vinay@gmail.com"],"super":[{"who":"vinay@gmail.com","image":"CSM17014.jpg"}]}
+        //alert(JSON.stringify(this.state.notification))
 
         var modal = document.getElementById("myModal1");
         var span = document.getElementsByClassName("close1")[0];
         modal.style.display = "block";
-        
 
         document.getElementById("super-likes").style.borderBottom = "3px solid #f05030";
         document.getElementById("super-likes").style.borderBottomLeftRadius = "20px";
@@ -295,10 +319,16 @@ export default class DashBoard extends Component {
                                     <span class="close1">&times;</span>
                                     <br/><br/>
                                     <div id="super-likes"><p>Super Likes</p></div>
-                                    <div className="super-likes-body" id="super-likes-body"></div>
+                                    <div className="super-likes-body" id="super-likes-body">
+                                    {this.state.superLike}
+                                    </div>
                                     
                                     <div className="likes" id="likes"><p>Likes</p></div>
-                                    <div className="likes-body" id="likes-body"></div>
+                                    <div className="likes-body" id="likes-body">
+                                        <table>
+                                            {this.state.likeHtml}
+                                        </table>
+                                    </div>
 
                                     
                                     

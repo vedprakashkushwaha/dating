@@ -243,9 +243,7 @@ async function loadImgSupport(res, data, selfEmail) {
           break;
         }
       }
-      console.log(JSON.stringify({
-        "results": data1
-      }))
+
       res.end(JSON.stringify({
         "results": data1
       }))
@@ -418,9 +416,9 @@ async function like(uname, target) {
 app.get("/api.like", async function (req, res) {
   let q = url1.parse(req.url, true);
   let qData = q.query
-  console.log(qData.uname)
+
   await like(qData.uname, qData.target);
-  console.log("hello");
+  res.end()
 });
 
 
@@ -465,6 +463,29 @@ async function addSuper(lList, email, target, image) {
   }
 }
 
+async function unameImg(resLike,uname,target) {
+  MongoClient.connect(url, {
+    useUnifiedTopology: true
+  }, (err, database) => {
+
+    const myDb = database.db('dating');
+    myDb.collection("clients")
+      .find({
+        email: uname
+      }, {
+        projection: {
+          _id: 0,
+          file: 1
+        }
+      })
+      .toArray(async function (err, resD) {
+        if (err) throw err;
+        
+        await addSuper(resLike, uname, target, resD[0]['file']);
+      });
+  });
+}
+
 async function superL(uname, target, image) {
   MongoClient.connect(url, {
     useUnifiedTopology: true
@@ -482,7 +503,8 @@ async function superL(uname, target, image) {
       })
       .toArray(async function (err, resD) {
         if (err) throw err;
-        await addSuper(resD[0]['like'], uname, target, image);
+        await unameImg(resD[0]['super'], uname, target);
+        //await addSuper(resD[0]['like'], uname, target, image);
       });
   });
 }
@@ -491,7 +513,7 @@ app.get("/api.super", async function (req, res) {
   let q = url1.parse(req.url, true);
   let qData = q.query
   await superL(qData.uname, qData.target, qData.image);
-  console.log("hello");
+ res.end()
 });
 
 
@@ -564,15 +586,17 @@ async function getNotification(uname, res) {
       }, {
         projection: {
           _id: 0,
-          like:1,
-          super:1
+          like: 1,
+          super: 1
         }
       })
       .toArray(async function (err, resD) {
         if (err) throw err;
-        console.log(resD[0]);
-        res.end(JSON.stringify({"results":resD[0]}));
-        //await loadImgSupport(res, resD, email)
+
+        res.end(JSON.stringify({
+          "results": resD[0]
+        }));
+
       });
   });
 }
