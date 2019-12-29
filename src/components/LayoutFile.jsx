@@ -40,7 +40,8 @@ const dashboard=<DashBoard/>
     async checkLogin() {
 
       const cookies = new Cookies();
-      if(cookies.get('uname') == undefined)
+      //if(cookies.get('uname') == undefined)
+      if(localStorage.getItem('token') == undefined || localStorage.getItem('token') == null ||localStorage.getItem('token') == false)
       {
         return false;
       }

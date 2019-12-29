@@ -2,6 +2,7 @@ import React, {
     Component
 } from 'react';
 import Cookies from "universal-cookie";
+import Axios from 'axios';
 
 export default class DashBoard extends Component {
     constructor() {
@@ -19,16 +20,25 @@ export default class DashBoard extends Component {
 
     like = async (email) => {
         const cookies = new Cookies();
-        alert("like")
-       // var url = "http://localhost:8000/api.like?uname="+cookies.get('uname') + "&target="+email;
-        //const respose = await fetch(url);
+        
+        var url = "http://localhost:8000/api.like?uname="+cookies.get('uname') + "&target="+email;
+        const respose = await fetch(url);
     };
 
-    super = async (email) => {
+    super = async (email,image) => {
+        //alert(image)
+        //alert(email)
         const cookies = new Cookies();
-        alert("super");
-        //var url = "http://localhost:8000/api.super?uname="+cookies.get('uname') + "&target="+email;
-        ///const respose = await fetch(url);
+        var url = "http://localhost:8000/api.super?uname="+cookies.get('uname') + "&target="+email+"&image="+image;
+        const respose = await fetch(url);
+       
+    };
+
+    popUp = async (email) => {
+        
+        alert("show pop up")
+        
+       
     };
 
 
@@ -57,13 +67,13 @@ export default class DashBoard extends Component {
             cardHtml.push(
                 <div className ="image-card">
                 <div className = "image-instance">
-                <img src={url}/>
+                <img src={url}  onClick = { async () => { await this.popUp(this.state.imageData[i]['email']);}} />
                     
                 </div>
                 <div className = "btn-group">
                     <button className = "btn"  onClick = { async () => { await this.block(this.state.imageData[i]['email']);}}> Block </button>
                     <button className="btn" onClick = { async () => { await this.like(this.state.imageData[i]['email']);}}>Like</button > 
-                    < button className = "btn"  onClick = { async () => { await this.super(this.state.imageData[i]['email']);}}> Super Like </button>
+                    < button className = "btn"  onClick = { async () => { await this.super(this.state.imageData[i]['email'],this.state.imageData[i]['image']);}}> Super Like </button>
                 </div>
 
             </div>
@@ -91,6 +101,8 @@ export default class DashBoard extends Component {
 
         const cookies = new Cookies();
         cookies.remove("uname");
+        localStorage.removeItem('token');
+
         window.location.href = "http://localhost:3000/";
     };
     render() {

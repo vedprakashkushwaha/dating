@@ -144,11 +144,12 @@ input{
     width: 67px;
     font-size: 11px;
     margin:3px;
+    cursor: pointer;
 
 }
 
 .image-instance{
-    height: 185px;
+    height: 190px;
     width: 90%;
     border: 1px solid blue;
     border-radius: 5px;;
@@ -157,6 +158,6 @@ input{
 
 .image-instance>img{
     height: 97%;
-    width: 95%;
-    
+    width: 90%;
+    cursor: pointer;
 }

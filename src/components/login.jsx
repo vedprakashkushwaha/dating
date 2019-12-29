@@ -24,12 +24,11 @@ export default class Login extends Component{
         const url="http://localhost:8000/login?uname="+email+"&pass="+pass;
         const response = await fetch(url);
         const data = await response.json();
-        alert(JSON.stringify(data['results'][0]['token']));
         if(data['results'][0]['token']!=false)
         {
-          
           const cookies = new Cookies();
           cookies.set('uname', email, { path: '/'});
+          localStorage.setItem("token",data['results'][0]['token'])
         }
         else
         {

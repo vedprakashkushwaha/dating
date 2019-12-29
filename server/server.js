@@ -3,7 +3,7 @@ const multer = require("multer");
 const cors = require("cors");
 const mkdirp = require("mkdirp");
 const jwt = require("jsonwebtoken");
-const SECRETKEY = "dwfdefvdvdfvsdfnhgjhgffgnhgf";
+const SECRETKEY = "dGKdsHnKKzHkkheGjKhjhKbHk";
 //const dbCon = require("./dbConnection");
 var url1 = require("url");
 const bodyParser = require("body-parser");
@@ -75,7 +75,7 @@ async function register(fname, lname, email, sex, age, pass, file) {
     age: age,
     pass: pass,
     file: file,
-    like: 0,
+    like: [],
     super: [],
     blocked: [email]
   };
@@ -140,11 +140,7 @@ async function loginCkeck(uname, pass, res) {
           if (err) {
             throw err;
           } else {
-            console.log(JSON.stringify({
-              "results": [{
-                "token": token
-              }]
-            }));
+
             res.end(JSON.stringify({
               "results": [{
                 "token": token
@@ -160,11 +156,7 @@ async function loginCkeck(uname, pass, res) {
 
 
       } else {
-        console.log(JSON.stringify({
-          "results": [{
-            "token": false
-          }]
-        }));
+
         res.end(JSON.stringify({
           "results": [{
             "token": false
@@ -240,7 +232,7 @@ async function loadImgSupport(res, data, selfEmail) {
         }
 
 
-        if (count == 4) {
+        if (count == 20) {
           break;
         }
       }
@@ -300,9 +292,8 @@ app.get("/getImage", function (req, res) {
 
 
 
-
+//block users
 async function addBlock(bList, email, target) {
-
   flag = 1;
   for (let i = 0; i < bList.length; i++) {
     if (bList[i] == target) {
@@ -323,9 +314,7 @@ async function addBlock(bList, email, target) {
         }
       });
     });
-
   }
-
 }
 
 async function block(uname, target) {
@@ -353,9 +342,153 @@ async function block(uname, target) {
 app.get("/api.block", async function (req, res) {
   let q = url1.parse(req.url, true);
   let qData = q.query
+  
   await block(qData.uname, qData.target);
 
 });
+
+
+
+
+
+
+//like photos
+async function addLike(lList, email, target) {
+  flag = 1;
+  try {
+    for (let i = 0; i < lList.length; i++) {
+      if (lList[i] == target) {
+        flag = 0;
+      }
+    }
+  } catch {
+    flag = 1
+    lList = []
+  }
+  if (flag == 1) {
+    MongoClient.connect(url, {
+      useUnifiedTopology: true
+    }, (err, database) => {
+      const myDb = database.db('dating');
+      lList.push(email);
+      myDb.collection("clients").updateOne({
+        email: target
+      }, {
+        $set: {
+          like: lList
+        }
+      });
+    });
+  }
+}
+
+
+
+async function like(uname, target) {
+  MongoClient.connect(url, {
+    useUnifiedTopology: true
+  }, (err, database) => {
+
+    const myDb = database.db('dating');
+    myDb.collection("clients")
+      .find({
+        email: target
+      }, {
+        projection: {
+          _id: 0,
+          like: 1
+        }
+      })
+      .toArray(async function (err, resD) {
+        if (err) throw err;
+        await addLike(resD[0]['like'], uname, target);
+      });
+  });
+}
+
+app.get("/api.like", async function (req, res) {
+  let q = url1.parse(req.url, true);
+  let qData = q.query
+  console.log(qData.uname)
+  await like(qData.uname, qData.target);
+  console.log("hello");
+});
+
+
+
+
+
+
+
+
+
+
+//super like images
+async function addSuper(lList, email, target,image) {
+  flag = 1;
+  try {
+    for (let i = 0; i < lList.length; i++) {
+      if (lList[i] == target) {
+        flag = 0;
+      }
+    }
+  } catch {
+    flag = 1
+    lList = []
+  }
+  if (flag == 1) {
+    MongoClient.connect(url, {
+      useUnifiedTopology: true
+    }, (err, database) => {
+      const myDb = database.db('dating');
+      lList.push({"who":email,"image":image});
+      myDb.collection("clients").updateOne({
+        email: target
+      }, {
+        $set: {
+          super: lList
+        }
+      });
+    });
+  }
+}
+
+async function superL(uname, target, image) {
+  MongoClient.connect(url, {
+    useUnifiedTopology: true
+  }, (err, database) => {
+
+    const myDb = database.db('dating');
+    myDb.collection("clients")
+      .find({
+        email: target
+      }, {
+        projection: {
+          _id: 0,
+          super: 1
+        }
+      })
+      .toArray(async function (err, resD) {
+        if (err) throw err;
+        await addSuper(resD[0]['like'], uname, target,image);
+      });
+  });
+}
+
+app.get("/api.super", async function (req, res) {
+  let q = url1.parse(req.url, true);
+  let qData = q.query
+  await superL(qData.uname, qData.target, qData.image);
+  console.log("hello");
+});
+
+
+
+
+
+
+
+
 
 app.get("/test", function (req, res) {
   res.end(JSON.stringify({
@@ -404,13 +537,49 @@ async function test(res) {
       }]
     }));
   }
-
-
-
 }
 
 
+/*
+function varify(req,res,next)
+{
+  var q=url1.parse(req.url,true);
+  var qData=q.query
+  next();
+}
+app.get("/hello",varify,function(req,res)
+{
+  var user = {name:"ved",age:25,user:"ved@gmail.com"}
+  jwt.sign(user,SECRETKEY,(err,token)=>{
+    res.json(token);
+  });
+});
 
+app.get("/testdata",varify,function(req,res)
+{
+  var user = {name:"ved",age:25,user:"ved@gmail.com"}
+  var q=url1.parse(req.url,true);
+  var qData=q.query
+  jwt.verify(qData['token'],SECRETKEY,(err,rData)=>{
+    if(err)
+    {
+      res.json("error found");
+    }
+    else{
+      res.json(rData);
+    }
+  });
+});
+*/
+app.post("/test", function (req, res) {
+  console.log("hello");
+  console.log(req.headers[0]);
+  res.json({
+    "data:": "data",
+    "age": 23
+  });
+
+});
 
 app.listen(8000, function () {
   console.log("server is running on 127.0.0.1:8000");
